@@ -1,0 +1,20 @@
+{
+  "name": "com.xangrab.audio-manager",
+  "version": "1.0.1",
+  "displayName": "Audio Manager",
+  "description": "A simple audio manager for unity",
+  "unity": "2019.1",
+  "unityRelease": "40f1",
+  "documentationUrl": "https://github.com/XanGrab/UnityAudioManager",
+  "licensesUrl": "https://github.com/XanGrab/UnityAudioManager/blob/main/LICENSE",
+  "keywords": [
+    "audio",
+    "sound",
+    "manager"
+  ],
+  "author": {
+    "name": "XanGrab",
+    "email": "XanGrab@github.com",
+    "url": "https://github.com/XanGrab"
+  }
+}
