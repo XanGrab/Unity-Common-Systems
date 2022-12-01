@@ -25,8 +25,8 @@ public class AudioManager : MonoBehaviour {
         }
     }
 
-    public void Play(string name) {
-        Sound s = Array.Find(sounds, sound => sound.name == name); 
+    public static void Play(string name) {
+        Sound s = Array.Find(_instance.sounds, sound => sound.name == name); 
         if(s == null){
             Debug.LogWarning("Sound: " + name + " not found.");
             return;
@@ -40,6 +40,21 @@ public class AudioManager : MonoBehaviour {
             s.source.Play();
         }
     }
+
+    public static void PlayOnce(string name) {
+        Sound s = Array.Find(_instance.sounds, sound => sound.name == name); 
+        if(s == null){
+            Debug.LogWarning("Sound: " + name + " not found.");
+            return;
+        }        
+        if(s.source == null){
+            Debug.LogWarning("Sound: " + s.name + " source missing.");
+            return;
+        }        
+        //Debug.Log("Sound Played: " + name);
+        s.source.Play();
+    }
+
     public void Play(string name, int time) {
         Sound s = Array.Find(sounds, sound => sound.name == name); 
         if(s == null){
@@ -54,8 +69,8 @@ public class AudioManager : MonoBehaviour {
         s.source.Play();
     }
 
-    public void Stop(string name) {
-        Sound s = Array.Find(sounds, sound => sound.name == name); 
+    public static void Stop(string name) {
+        Sound s = Array.Find(_instance.sounds, sound => sound.name == name); 
         if(s == null){
             Debug.LogWarning("Sound: " + s.name + " not found.");
             return;
