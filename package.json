@@ -1,15 +1,15 @@
 {
-  "name": "com.xangrab.audio-manager",
+  "name": "com.xangrab.common-systems",
   "version": "0.1.0",
-  "displayName": "Audio Manager",
-  "description": "A simple audio manager for unity",
-  "unity": "2019.1",
+  "displayName": "Common Reusable Systems",
+  "description": "a simple unity package that contains some of my commonly reused systems",
+  "unity": "2021.3",
   "unityRelease": "40f1",
-  "documentationUrl": "https://github.com/XanGrab/UnityAudioManager",
-  "licensesUrl": "https://github.com/XanGrab/UnityAudioManager/blob/main/LICENSE",
+  "documentationUrl": "https://github.com/XanGrab/Unity-Common-Systems/blob/main",
+  "licensesUrl": "https://github.com/XanGrab/Unity-Gameplay-Systems-Manager/blob/main/LICENSE",
   "keywords": [
     "audio",
-    "sound",
+    "utility",
     "manager"
   ],
   "author": {
