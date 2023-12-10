@@ -10,8 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.0] - 2023-12-07
 
-### Added
+* Initial Commit
+
+## [0.1.1] - 2023-12-10
 
 ### Changed
+
+* Bootstrapper.cs
+* AudioManager.cs
+
+### Added
+
++ Editor Icons
++ [AlwaysLinkAssembly] attribute added to boostrapper
 
 ### Removed
