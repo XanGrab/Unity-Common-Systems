@@ -15,16 +15,12 @@ A utility function used to load any systems required at Runtime (e.g. `AudioMana
 
 A utility manager class that utilizes a `Sound` ScriptableObject to play sounds on command from scripts.
 
-### Properties
-
-|            |                                                                                 |
+| **Properties**           |                                                                                 |
 | ---------- | ------------------------------------------------------------------------------- |
 | `Instance` | the current instance of the AudioManager class (implements _Singleton_ pattern) |
 | `sounds`   | Array of `Sound` objects that can be played at any time                         |
 
-### Public Methods
-
-|            |                                                                           |
+| **Methods**            |                                                                           |
 | ---------- | ------------------------------------------------------------------------- |
 | `Play`     | plays a specified sound in the current scene if it is not already playing |
 | `PlayOnce` | triggers a specified sound to be played in the current scene              |
