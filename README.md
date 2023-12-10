@@ -1,6 +1,6 @@
 # Unity Common Reusable Systems ⚙️
 
-## Version 0.1.0
+## Version 0.1.1
 
 A simple unity package that contains some of my commonly reused systems
 
