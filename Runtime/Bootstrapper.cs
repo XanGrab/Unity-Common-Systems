@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
+[assembly: AlwaysLinkAssembly]
 public class Bootstrapper {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void Execute() {
