@@ -40,7 +40,7 @@ public class AudioManager : MonoBehaviour {
         src ??= _instance.speaker; 
         if(sound == null){
             Debug.LogWarning("[AudioManager > Play] Sound '" + name + "' not found.");
-            return null;
+            return src;
         }        
 
         src.clip = sound.clip;
@@ -49,6 +49,16 @@ public class AudioManager : MonoBehaviour {
         src.loop = sound.loop;
         return src; 
     }
+    
+
+    /// <summary>
+    /// Get the current timestamp from an AudioSource
+    /// <param name="src">the audio source to play sound from; leave null to get the speaker of the audio manager</param>
+    public static float GetTimestamp(AudioSource src = null) {
+        src ??= _instance.speaker; 
+        return src.time;
+    }
+
 
     /// <summary>
     /// Method <c>PlayOnce</c> triggers a specified sound to be played in the current scene
@@ -73,10 +83,9 @@ public class AudioManager : MonoBehaviour {
     }
 
     /// <summary> Method <c>Play</c> is used to stop a specified sound in the current scene </summary>
-    /// <param name="name">the name of the Sound in manager's sounds to stop</param>
     /// <param name="src">the target audio source</param>
-    public static void Stop(string name, AudioSource src = null) {
-        AudioSource source = ReadyAudio(src, name);
-        source.Stop();
+    public static void Stop(AudioSource src = null) {
+        src ??= _instance.speaker; 
+        src.Stop();
     }
 }
