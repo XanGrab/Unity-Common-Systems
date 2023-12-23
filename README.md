@@ -13,7 +13,7 @@ A utility function used to load any systems required at Runtime (e.g. `AudioMana
 
 ## Audio Manager 🔊
 
-A utility manager class that utilizes a `Sound` ScriptableObject to play sounds on command from scripts.
+A manager class that utilizes `Sound` ScriptableObjects to play Audio Clips on command from scripts.
 
 | **Properties** |                                                                                 |
 | -------------- | ------------------------------------------------------------------------------- |
