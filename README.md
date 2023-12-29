@@ -11,7 +11,7 @@ A simple unity package that contains some of my commonly reused systems
 
 A utility function used to load any systems required at Runtime (e.g. `AudioManager`). In the Editor hierarchy, a GameObject named "GlobalSystems" gets added on Runtime Initalized.
 
-## Audio Manager 🔊
+## Audio Manager 🎹
 
 A manager class that utilizes `Sound` ScriptableObjects to play Audio Clips on command from scripts.
 
