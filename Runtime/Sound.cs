@@ -1,4 +1,5 @@
-
+using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -7,44 +8,60 @@ using UnityEngine.Audio;
 /// </summary>
 [CreateAssetMenu(menuName = "Sound")]
 public class Sound : ScriptableObject {
+    [SerializeField] private AudioClip[] clips;
 
-    public string name;
+    [SerializeField] private ClipOrder clipOrder = ClipOrder.ordered; 
 
-    public AudioClip clip;
+    [SerializeField] private AudioMixerGroup outputGroup;
+    public AudioMixerGroup OutputMixerGroup => outputGroup;
 
-    public AudioMixerGroup outputGroup;
+    private int clipIndex = -1;
 
     [Range(0f, 1f)]
-    public float volume = 0f;
+    [SerializeField] private float volume = 0f;
+    public float Volume => volume;
 
-    public bool loop;
+    [Range(-10, 10)]
+    [SerializeField] private int pitch = 0;
+    public int Pitch => pitch;
 
-#if UNITY_EDITOR
-// TODO Editor Preview
-//     #region Preview
+    [SerializeField] private bool loop = false;
+    public bool Loop => loop;
 
-//     private AudioSource previewer;
+    public void LoadClips(){
+        foreach(AudioClip clip in clips) {
+            clip.LoadAudioData();
+        }
+    }
 
-//     private void OnEnable() {
-//         previewer = EditorUtility.createObjectWithHideFlags("AudioPreview",
-//         HideFlags.HideAndDontSave, typeof(AudioSource)).GetComponent<AudioSource>();    
-//     }
+    public void setClipIndex(int index){
+        if (clipOrder != ClipOrder.manual) {
+            Debug.LogWarning("Warning [Sound " + name + "] should not call setClipIndex unless ClipOrder is set to manual");
+        }
 
-//     private void OnDisable() {
-//         DestroyImmediate(previewer.gameObject);
-//     }
+        clipIndex = index;
+    }
 
-//     private void PlayPreview(){
-//         if(previewer.isPlaying){
-//             previewer.Stop();
-//         } else {
-//             previewer.Play();
-//         }
-//     }
+    public AudioClip getClip() {
+        switch(clipOrder) {
+            case ClipOrder.ordered:
+                clipIndex = (clipIndex + 1) % clips.Length;
+                break;
+            case ClipOrder.random:
+                clipIndex = Random.Range(0, clips.Length);
+                break;
+            default:
+                break;
+        }
+        return clips[clipIndex];
+    }
 
-//     public override void OnInsepectorGUI(){
-//         DrawDefaultInsepctor();
-//     }
-//     #endregion
-#endif
+    public AudioClip getClip(int index) { return clips[index]; }
 }
+
+enum ClipOrder {
+    ordered = 0,
+    random = 1,
+    manual = 2,
+}
+
