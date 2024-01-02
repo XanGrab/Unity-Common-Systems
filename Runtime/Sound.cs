@@ -30,7 +30,7 @@ namespace SoundSystem {
         public float Volume => volume;
 
         [Range(-10, 10)]
-        [SerializeField] private int pitch = 0;
+        [SerializeField] private int pitch = 1;
         public int Pitch => pitch;
 
         [SerializeField] private bool loop = false;
