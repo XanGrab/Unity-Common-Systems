@@ -36,9 +36,13 @@ namespace SoundSystem {
         [SerializeField] private bool loop = false;
         public bool Loop => loop;
 
+        void Awake() {
+            AudioManager.LoadSounds(new Sound[] { this });
+        }
+
         #region ManageClips
 
-        public void LoadClips(){
+        public void LoadClips() {
             foreach(AudioClip clip in clips) {
                 clip.LoadAudioData();
             }
@@ -72,7 +76,7 @@ namespace SoundSystem {
 
         #region AudioCtrl
 
-        public void Play(float fadeTime, float time) {
+        public void Play(float fadeTime = 0f, float time = 0f) {
             AudioManager.Play(this, fadeTime, time);
         }
 
