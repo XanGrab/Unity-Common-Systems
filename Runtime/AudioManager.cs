@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -7,11 +8,11 @@ namespace SoundSystem {
     /// <summary>
     /// Class <c>AudioManager</c> is used to trigger sounds and play music from scenes in Unity. Sounds should be manually added to the sounds array in the Inspector for use at Runtime
     /// </summary>
-    [RequireComponent(typeof(AudioSource))]
+    [RequireComponent(typeof(AudioListener), typeof(AudioSource))]
     public class AudioManager : MonoBehaviour {
         // Singleton
         private static AudioManager _instance;
-        public static AudioManager Instance { get { return _instance; } }    
+        public static AudioManager Instance { get { return _instance; } }
 
         private static AudioSource speaker;
 
@@ -21,35 +22,36 @@ namespace SoundSystem {
         // Sounds that should remain persistent across the runtime of the game. These will be loaded in Awake effectivley similar to preloadAudioData
 
         // Manager internal array of all playable sounds
-        private static Sound[] tracks;
+        private static List<Sound> tracks = new List<Sound>();
 
-        void Awake() {
-            if(_instance != null && _instance != this) {
+        /// <summary>
+        /// Get the current timestamp from an AudioSource
+        public static float GetTimestamp => speaker.time;
+
+        public void Awake() {
+            if (_instance != null && _instance != this) {
                 Destroy(this);
                 return;
-            }else{
+            } else {
                 _instance = this;
             }
 
             speaker = gameObject.GetComponent<AudioSource>();
 
-            tracks = new Sound[persistSounds.Length];
-            foreach (Sound sound in persistSounds) sound.LoadClips();
-            Array.Copy(persistSounds, tracks, persistSounds.Length);
-
-            if(playOnAwake && tracks.Length > 0) Play(tracks[0].name);
+            LoadSounds(persistSounds);
+            if (playOnAwake && tracks.Count > 0) Play(tracks[0].name);
         }
 
         #region HelperMethods
 
         private static Sound GetSound(string name) {
-            return Array.Find(tracks, sound => sound.name == name); 
+            return tracks.Find(sound => sound.name == name);
         }
 
-        private static AudioSource ReadySource(Sound sound, AudioSource src = null){
-            if(!src) src = speaker; 
+        private static AudioSource ReadySource(Sound sound, AudioSource src = null) {
+            if (!src) src = speaker;
 
-            src.clip = sound.getClip();
+            src.clip = sound.GetClip();
             src.volume = sound.Volume;
             src.pitch = sound.Pitch;
             src.loop = sound.Loop;
@@ -57,18 +59,18 @@ namespace SoundSystem {
             return src;
         }
 
-        /// <summary>
-        /// Get the current timestamp from an AudioSource
-        public static float GetTimestamp() { return speaker.time; }
-
         public static void LoadSounds(Sound[] toLoad) {
-            foreach (Sound sound in toLoad){
+            foreach (Sound sound in toLoad) {
                 sound.LoadClips();
+                tracks.Add(sound);
             }
+        }
 
-            int prevLength = tracks.Length;
-            Array.Resize(ref tracks, tracks.Length + toLoad.Length);
-            Array.Copy(toLoad, 0, tracks, prevLength, toLoad.Length);
+        public static void UnloadSounds(Sound[] toUnload) {
+            foreach (Sound sound in toUnload) {
+                sound.UnloadClips();
+                tracks.Remove(sound);
+            }
         }
 
         #endregion
@@ -76,114 +78,96 @@ namespace SoundSystem {
         public static void PlayOnce(string name) {
             Sound sound = GetSound(name);
             AudioSource src = ReadySource(sound);
-            if(!src) { 
+            if (!src) {
                 return;
             } else {
                 speaker = src;
             }
             speaker.PlayOneShot(speaker.clip);
-                Debug.Log("DEBUG [AudioManager > PlayOnce] " + name);
         }
 
-        public static void Play(string name, float fadeTime = 0f, float time = 0f) {
+        public static void Play(string name, float startTime = 0f, float duration = 0f) {
             Sound sound = GetSound(name);
-            AudioSource src = ReadySource(sound);
-            if(!src) { 
-                return;
-            } else {
-                speaker = src;
-            }
-
-            speaker.time = time;
-            if(!speaker.isPlaying) {
-                speaker.Play();
-                Debug.Log("DEBUG [AudioManager > Play] " + name);
-            }
+            Play(sound, startTime, duration);
         }
 
-        public static void Play(Sound sound, float fadeTime = 0f, float time = 0f) {
+        public static void Play(Sound sound, float startTime = 0f, float duration = 0f) {
             AudioSource src = ReadySource(sound);
-            if(!src) { 
+            if (!src) {
                 return;
             } else {
                 speaker = src;
             }
 
-            speaker.time = time;
-            if(!speaker.isPlaying) {
+            speaker.time = startTime;
+            if (!speaker.isPlaying) {
                 speaker.Play();
-                Debug.Log("DEBUG [AudioManager > Play] " + sound.name);
+
+                if (duration > 0) {
+                    speaker.volume = 0;
+                    _instance.StartCoroutine(FadeVolume(sound.Volume, duration, speaker));
+                }
             }
         }
 
         public static void PauseToggle(AudioSource src = null) {
-            if(!src) src = speaker; 
+            if (!src) src = speaker;
 
-            if(src.isPlaying){
+            if (src.isPlaying) {
                 src.Pause();
-            }else{
+            } else {
                 src.UnPause();
             }
         }
 
-        public static void Stop(AudioSource src = null) {
-            if(!src) src = speaker; 
-            src.Stop();
-        }
-        
-        IEnumerator FadeOut(AudioSource src = null, float step = 0.1f, float rate = 0.1f) {
-            if (step <= 0) {
-                Debug.LogError("ERROR [AudioManager > FadeOut] Invalid param step and rate must be > 0");
-                yield break;
-            }
-            float clipVolume = speaker.volume;
-
-            for (float vol = clipVolume; vol > 0; vol -= rate){
-                speaker.volume = vol;
-                yield return new WaitForSeconds(step);
-            }
-        }
-
-        IEnumerator FadeIn(string name, AudioSource src = null, float step = 0.1f, float rate = 0.1f) {
-            if (step <= 0 || rate <= 0.1f) {
-                Debug.LogError("ERROR [AudioManager > FadeOut] Invalid param step and rate must be > 0");
-                yield break;
-            }
-            Sound sound = GetSound(name);
-            speaker = ReadySource(sound);
-            AudioSource source = ReadySource(sound);
-            if(!source) { 
-                yield break;
+        public static void Stop(float duration = 0f, AudioSource src = null) {
+            if (!src) src = speaker;
+            if (duration <= 0) {
+                src.Stop();
             } else {
-                speaker = src;
-            }
-
-            float clipVolume = speaker.volume;
-
-            for (float vol = 0.0f; vol < clipVolume; vol += rate){
-                speaker.volume = vol;
-                yield return new WaitForSeconds(step);
+                _instance.StartCoroutine(FadeOut(duration, src));
             }
         }
 
-        IEnumerator CrossFade(string name, float step = 0.1f, float rate = 0.1f) {
-            if (step <= 0 || rate <= 0.1f) {
-                Debug.LogError("ERROR [AudioManager > FadeOut] Invalid param step and rate must be > 0");
-                yield break;
+        private static IEnumerator FadeVolume(float targetVolume, float duration, AudioSource src = null) {
+            if (!src) src = speaker;
+            float initialVolume = src.volume;
+
+            for (float elapsedTime = 0f; elapsedTime <= duration; elapsedTime += Time.deltaTime) {
+                float newVolume = Mathf.Lerp(initialVolume, targetVolume, elapsedTime / duration);
+                src.volume = newVolume;
+                yield return null;
             }
-            AudioSource newSource = gameObject.AddComponent<AudioSource>();
+            src.volume = targetVolume;
+        }
+
+        private static IEnumerator FadeOut(float duration = 0f, AudioSource src = null) {
+            AudioSource fadeOut = speaker;
+            speaker = _instance.gameObject.AddComponent<AudioSource>();
+
+            yield return _instance.StartCoroutine(FadeVolume(0f, duration, fadeOut));
+            fadeOut.Stop();
+            Destroy(fadeOut);
+        }
+
+        public static void SwitchTo(string name, float durationOut, float durationIn) {
             Sound sound = GetSound(name);
+            SwitchTo(sound, durationOut, durationIn);
+        }
+
+        public static void SwitchTo(Sound sound, float durationOut, float durationIn) {
+            _instance.StartCoroutine(CrossFadeTo(sound, durationOut, durationIn));
+        }
+
+        private static IEnumerator CrossFadeTo(Sound sound, float durationOut, float durationIn) {
+            AudioSource newSource = _instance.gameObject.AddComponent<AudioSource>();
             newSource = ReadySource(sound, newSource);
             newSource.time = speaker.time;
             newSource.volume = 0f;
-            float clipVolume = speaker.volume;
 
-            for (float vol = clipVolume; vol > 0; vol -= rate){
-                speaker.volume = vol;
-                newSource.volume += rate;
-                yield return new WaitForSeconds(step);
-            }
-
+            newSource.Play();
+            _instance.StartCoroutine(FadeOut(durationOut));
+            yield return _instance.StartCoroutine(FadeVolume(sound.Volume, durationIn, newSource));
             Destroy(speaker);
             speaker = newSource;
         }

@@ -18,7 +18,7 @@ namespace SoundSystem {
     public class Sound : ScriptableObject {
         [SerializeField] private AudioClip[] clips;
 
-        [SerializeField] private ClipType clipType = ClipType.ordered; 
+        [SerializeField] private ClipType clipType = ClipType.manual;
 
         [SerializeField] private AudioMixerGroup _mixer;
         public AudioMixerGroup Mixer => _mixer;
@@ -36,28 +36,31 @@ namespace SoundSystem {
         [SerializeField] private bool loop = false;
         public bool Loop => loop;
 
-        void Awake() {
+        public void OnEnable() {
             AudioManager.LoadSounds(new Sound[] { this });
+        }
+
+        public void OnDisable() {
+            AudioManager.UnloadSounds(new Sound[] { this });
         }
 
         #region ManageClips
 
         public void LoadClips() {
-            foreach(AudioClip clip in clips) {
+            foreach (AudioClip clip in clips) {
                 clip.LoadAudioData();
             }
         }
-
-        public void setClipIndex(int index){
-            if (clipType != ClipType.manual) {
-                Debug.LogWarning("Warning [Sound " + name + "] should not call setClipIndex unless ClipOrder is set to manual");
+        public void UnloadClips() {
+            foreach (AudioClip clip in clips) {
+                clip.UnloadAudioData();
             }
-
-            clipIndex = index;
         }
 
-        public AudioClip getClip() {
-            switch(clipType) {
+        public AudioClip GetClip(int index) { return clips[index]; }
+
+        public AudioClip GetClip() {
+            switch (clipType) {
                 case ClipType.ordered:
                     clipIndex = (clipIndex + 1) % clips.Length;
                     break;
@@ -70,23 +73,31 @@ namespace SoundSystem {
             return clips[clipIndex];
         }
 
-        public AudioClip getClip(int index) { return clips[index]; }
+        public void SetClipIndex(int index) {
+            if (clipType != ClipType.manual) {
+                Debug.LogWarning("Warning [Sound " + name + "] should not call setClipIndex unless ClipOrder is set to manual");
+            }
+
+            clipIndex = index;
+        }
+
 
         #endregion //ManageClips
 
         #region AudioCtrl
 
-        public void Play(float fadeTime = 0f, float time = 0f) {
-            AudioManager.Play(this, fadeTime, time);
+        public void Play(float startTime = 0f, float duration = 0f) {
+            AudioManager.Play(this, startTime, duration);
         }
 
         public void PauseToggle() {
             AudioManager.PauseToggle();
         }
 
-        public void Stop() {
-            AudioManager.Stop();
+        public void Stop(float duration = 0f) {
+            AudioManager.Stop(duration);
         }
+
         #endregion //AudioCtrl
     }
 }
