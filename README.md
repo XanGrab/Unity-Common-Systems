@@ -45,8 +45,8 @@ Sounds can be added to the AudioManager manually in the inspector if they should
 | **Properties** |                                                                                 |
 | -------------- | ------------------------------------------------------------------------------- |
 | `Instance`     | The current instance of the AudioManager class (implements _Singleton_ pattern) |
-| `Persist Sounds`       | Array of `Sound` objects that can be played at any time during the lifetime of the manager                        |
-| `Play On Awake`       | When toggled, the manager will attempt to play the first loaded Sound in its internal array as soon as it is added OnAwake() |
+| `PersistSounds`       | Array of `Sound` objects that can be played at any time during the lifetime of the manager                        |
+| `PlayOnAwake`       | When toggled, the manager will attempt to play the first loaded Sound in its internal array as soon as it is added OnAwake() |
 
 ### Methods
 
