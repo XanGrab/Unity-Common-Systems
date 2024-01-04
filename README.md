@@ -4,14 +4,14 @@
 
 A simple unity package that contains some of my commonly reused systems
 
-1. [Bootstrapper](#Bootstrapper)
-2. [SoundSystem](#SoundSystem)
+* Bootstrapper
+* SoundSystem
 
-## 🧰 Bootstrapper <a name="Bootstrapper" />
+## 🧰 Bootstrapper
 
 A utility function used to load any systems required at Runtime (e.g. `AudioManager`). In the Editor hierarchy, a GameObject named "GlobalSystems" gets added on Runtime Initalized.
 
-# SoundSystem <a name="SoundSystem" />
+# SoundSystem
 
 Use this simple sound system by importing the `SoundSystem` namespace into a file.
 
