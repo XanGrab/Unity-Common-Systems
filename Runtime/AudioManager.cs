@@ -6,30 +6,40 @@ using UnityEngine.Audio;
 
 namespace SoundSystem {
     /// <summary>
-    /// Class <c>AudioManager</c> is used to trigger sounds and play music from scenes in Unity. Sounds should be manually added to the sounds array in the Inspector for use at Runtime
+    /// Class <c>AudioManager</c> is used to play music and SFX from scenes in Unity. A <see cref="Sound"/> can be added to the AudioManager manually in the inspector if they should remain persistantly loaded in memory, or loaded at OnEnable during runtime from Sound ScriptableObjects.
     /// </summary>
     [RequireComponent(typeof(AudioListener), typeof(AudioSource))]
     public class AudioManager : MonoBehaviour {
-        // Singleton
         private static AudioManager _instance;
-        public static AudioManager Instance { get { return _instance; } }
+        /// <summary> 
+        /// The public instance of the AudioManager in the current scene
+        /// </summary> 
+        public static AudioManager Instance => _instance;
 
         private static AudioSource speaker;
 
+        /// <summary> 
+        /// Sounds that should remain persistent across the runtime of the game. These will be loaded in OnAwake effectivley similar to enabling preloadAudioData
+        /// </summary> 
         [SerializeField] private Sound[] persistSounds;
+        /// <summary> 
+        /// Sounds that should remain persistent across the runtime of the game. These will be loaded in OnAwake effectivley similar to enabling preloadAudioData
+        /// </summary> 
         [SerializeField] private bool playOnAwake = false;
 
-        // Sounds that should remain persistent across the runtime of the game. These will be loaded in Awake effectivley similar to preloadAudioData
-
-        // Manager internal array of all playable sounds
+        /// <summary> 
+        /// An internal array of all playable sounds in the <c>AudioManager</c>
+        /// </summary>
         private static List<Sound> tracks = new List<Sound>();
 
-        /// <summary>
-        /// Get the current timestamp from an AudioSource
+        /// <summary> 
+		/// Get the current timestamp from an <c>AudioSource</c> of the <c>AudioManager</c>
+		/// </summary>
         public static float GetTimestamp => speaker.time;
 
         public void Awake() {
             if (_instance != null && _instance != this) {
+                Debug.LogError("AudioManager is a Singleton and should not be added to scene more than once.");
                 Destroy(this);
                 return;
             } else {
@@ -38,7 +48,6 @@ namespace SoundSystem {
 
             speaker = gameObject.GetComponent<AudioSource>();
 
-            LoadSounds(persistSounds);
             if (playOnAwake && tracks.Count > 0) Play(tracks[0].name);
         }
 
@@ -59,39 +68,61 @@ namespace SoundSystem {
             return src;
         }
 
-        public static void LoadSounds(Sound[] toLoad) {
-            foreach (Sound sound in toLoad) {
-                sound.LoadClips();
-                tracks.Add(sound);
-            }
+        /// <summary> 
+        /// Load a collection of sounds into the <c>AudioManager</c> to be played in the current scene
+        /// </summary>
+        /// <param name="toLoad">the collection sounmds to be loaded</param>
+        public static void LoadSounds(IEnumerable<Sound> toLoad) {
+            foreach (Sound sound in toLoad) tracks.Add(sound);
         }
 
-        public static void UnloadSounds(Sound[] toUnload) {
-            foreach (Sound sound in toUnload) {
-                sound.UnloadClips();
-                tracks.Remove(sound);
-            }
+        /// <summary> 
+        /// Remove a collection of sounds from the <c>AudioManager</c> no londer needed in the current scene
+        /// </summary>
+        /// <param name="toUnload">the collection sounmds to be removed</param>
+        public static void UnloadSounds(IEnumerable<Sound> toUnload) {
+            foreach (Sound sound in toUnload) tracks.Remove(sound);
         }
 
-        #endregion
+        #endregion // HelperMethods
 
-        public static void PlayOnce(string name) {
+        #region BasicFunctionality
+
+        /// <summary> 
+        /// Play a one shot sound effect from an AudioSource
+        /// </summary>
+        /// <param name="name">the name of the sound to be played <c>AudioManager</c></param>
+        public static void PlayOneShot(string name) {
             Sound sound = GetSound(name);
-            AudioSource src = ReadySource(sound);
-            if (!src) {
-                return;
-            } else {
-                speaker = src;
-            }
-            speaker.PlayOneShot(speaker.clip);
+            PlayOneShot(sound);
         }
 
-        public static void Play(string name, float startTime = 0f, float duration = 0f) {
+        /// <summary> 
+        /// Play a one shot sound effect from an AudioSource
+        /// </summary>
+        /// <param name="sound">the sound to be played </param>
+        public static void PlayOneShot(Sound sound) {
+            speaker.PlayOneShot(sound.GetClip());
+        }
+
+        /// <summary> 
+        /// Begin playing a sound from the main source of the <c>AudioManager</c>
+        /// </summary>
+        /// <param name="name">the name of the sound to be played </param>
+        /// <param name="startTime"> [optional] starting timestamp of the clip </param>
+        /// <param name="fadeDuration"> [optional] specifify a duration for which the sound should fade-in </param>
+        public static void Play(string name, float startTime = 0f, float fadeDuration = 0f) {
             Sound sound = GetSound(name);
-            Play(sound, startTime, duration);
+            Play(sound, startTime, fadeDuration);
         }
 
-        public static void Play(Sound sound, float startTime = 0f, float duration = 0f) {
+        /// <summary> 
+        /// Begin playing a sound from the main source of the <c>AudioManager</c>
+        /// </summary>
+        /// <param name="sound">the sound to be played </param>
+        /// <param name="startTime"> [optional] the starting timestamp of the clip </param>
+        /// <param name="fadeDuration"> [optional] specifify a duration for which the sound should fade-in </param>
+        public static void Play(Sound sound, float startTime = 0f, float fadeDuration = 0f) {
             AudioSource src = ReadySource(sound);
             if (!src) {
                 return;
@@ -103,13 +134,17 @@ namespace SoundSystem {
             if (!speaker.isPlaying) {
                 speaker.Play();
 
-                if (duration > 0) {
+                if (fadeDuration > 0) {
                     speaker.volume = 0;
-                    _instance.StartCoroutine(FadeVolume(sound.Volume, duration, speaker));
+                    _instance.StartCoroutine(FadeVolume(sound.Volume, fadeDuration, speaker));
                 }
             }
         }
 
+        /// <summary> 
+        /// Begin playing a sound from the main source of the <c>AudioManager</c>
+        /// </summary>
+        /// <param name="src"> [optional] manually specifify an AudioSource to toggle </param>
         public static void PauseToggle(AudioSource src = null) {
             if (!src) src = speaker;
 
@@ -120,16 +155,31 @@ namespace SoundSystem {
             }
         }
 
-        public static void Stop(float duration = 0f, AudioSource src = null) {
+        /// <summary> 
+        /// Stop the sound playing on the main source of the <c>AudioManager</c>
+        /// </summary>
+        /// <param name="fadeDuration"> [optional] specifify a duration for which the sound should fade-out </param>
+        /// <param name="src"> [optional] manually specifify an AudioSource to fade </param>
+        public static void Stop(float fadeDuration = 0f, AudioSource src = null) {
             if (!src) src = speaker;
-            if (duration <= 0) {
+            if (fadeDuration <= 0) {
                 src.Stop();
             } else {
-                _instance.StartCoroutine(FadeOut(duration, src));
+                _instance.StartCoroutine(FadeOut(fadeDuration, src));
             }
         }
 
-        private static IEnumerator FadeVolume(float targetVolume, float duration, AudioSource src = null) {
+        #endregion //BasicFunctionality
+
+        #region MixingRoutines
+
+        ///<summary>
+        /// Fade the volume of the main source to the <paramref name="targetVolume"/>
+        ///</summary>
+        /// <param name="targetVolume">target volume to fade to</param> 
+        /// <param name="duration">duration of the fade event in seconds</param> 
+        /// <param name="src"> [optional] manually specifify an AudioSource to fade </param>
+        public static IEnumerator FadeVolume(float targetVolume, float duration, AudioSource src = null) {
             if (!src) src = speaker;
             float initialVolume = src.volume;
 
@@ -141,6 +191,11 @@ namespace SoundSystem {
             src.volume = targetVolume;
         }
 
+        ///<summary>
+        /// Fade the volume of the main source to zero
+        ///</summary>
+        /// <param name="duration">duration of the fade event in seconds</param> 
+        /// <param name="src"> [optional] manually specifify an AudioSource to fade </param>
         private static IEnumerator FadeOut(float duration = 0f, AudioSource src = null) {
             AudioSource fadeOut = speaker;
             speaker = _instance.gameObject.AddComponent<AudioSource>();
@@ -150,16 +205,28 @@ namespace SoundSystem {
             Destroy(fadeOut);
         }
 
-        public static void SwitchTo(string name, float durationOut, float durationIn) {
+        ///<summary>
+        /// Cross fade to a new sound on the main source of the <c>AudioManager</c>
+        ///</summary>
+        /// <param name="name">the name of the new sound to be played <c>AudioManager</c></param>
+        /// <param name="durationOut">duration of the fade-out event in seconds for the current sound</param> 
+        /// <param name="durationIn">duration of the fade-in event in seconds for the new sound</param> 
+        public static void FadeTo(string name, float durationOut, float durationIn) {
             Sound sound = GetSound(name);
-            SwitchTo(sound, durationOut, durationIn);
+            FadeTo(sound, durationOut, durationIn);
         }
 
-        public static void SwitchTo(Sound sound, float durationOut, float durationIn) {
-            _instance.StartCoroutine(CrossFadeTo(sound, durationOut, durationIn));
+        ///<summary>
+        /// Cross fade to a new sound on the main source of the <c>AudioManager</c>
+        ///</summary>
+        /// <param name="sound">the new sound to be played </param>
+        /// <param name="durationOut">duration of the fade-out event in seconds for the current sound</param> 
+        /// <param name="durationIn">duration of the fade-in event in seconds for the new sound</param> 
+        public static void FadeTo(Sound sound, float durationOut, float durationIn) {
+            _instance.StartCoroutine(FadeToRoutine(sound, durationOut, durationIn));
         }
 
-        private static IEnumerator CrossFadeTo(Sound sound, float durationOut, float durationIn) {
+        private static IEnumerator FadeToRoutine(Sound sound, float durationOut, float durationIn) {
             AudioSource newSource = _instance.gameObject.AddComponent<AudioSource>();
             newSource = ReadySource(sound, newSource);
             newSource.time = speaker.time;
@@ -171,5 +238,7 @@ namespace SoundSystem {
             Destroy(speaker);
             speaker = newSource;
         }
+
+        #endregion //MixingRoutines
     }
 }

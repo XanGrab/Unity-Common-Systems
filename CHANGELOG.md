@@ -25,3 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 + [AlwaysLinkAssembly] attribute added to boostrapper
 
 ### Removed
+
+## [0.1.2] - 2024-01-03
+
+### Changed
+
+* Sound.cs
+* AudioManager.cs
+
+### Added
+
++ Fade functionality
++ AudioManager.cs and Sound.cs moved into seperate SoundSystem namespace
