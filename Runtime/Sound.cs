@@ -56,19 +56,16 @@ namespace SoundSystem {
         [SerializeField] private int pitch = 1;
         public int Pitch => pitch;
 
-        ///<summary>
-        /// toggles whether or not this Sound should repeat itself
-        ///</summary>
         [SerializeField] private bool loop = false;
         public bool Loop => loop;
 
         public void OnEnable() {
-            LoadClips();
+            if (clips) LoadClips();
             AudioManager.LoadSounds(new Sound[] { this });
         }
 
         public void OnDisable() {
-            UnloadClips();
+            if (clips) UnloadClips();
             AudioManager.UnloadSounds(new Sound[] { this });
         }
 
