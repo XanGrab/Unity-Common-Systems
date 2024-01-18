@@ -60,12 +60,12 @@ namespace SoundSystem {
         public bool Loop => loop;
 
         public void OnEnable() {
-            if (clips) LoadClips();
+            if (clips != null) LoadClips();
             AudioManager.LoadSounds(new Sound[] { this });
         }
 
         public void OnDisable() {
-            if (clips) UnloadClips();
+            if (clips != null) UnloadClips();
             AudioManager.UnloadSounds(new Sound[] { this });
         }
 
