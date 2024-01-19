@@ -89,6 +89,11 @@ public class SoundEditor : Editor {
         if (!gameObjectEditor) {
             gameObjectEditor = Editor.CreateEditor(_targetClip);
         }
+
+        // prevent default mouse events form AudioClip
+        if (Event.current.isMouse) {
+            return;
+        }
         //TODO replace this line
         gameObjectEditor.DrawPreview(r);
         // gameObjectEditor.RenderStaticPreview();
