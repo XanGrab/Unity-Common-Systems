@@ -1,7 +1,6 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
-
 namespace SoundSystem {
 
     /// <summary> 
@@ -92,6 +91,8 @@ namespace SoundSystem {
         /// Get the next AudioClip for this sound
         ///</summary>
         public AudioClip GetClip() {
+            if (clips.Length == 0) return null;
+
             switch (clipType) {
                 case ClipType.ordered:
                     clipIndex = (clipIndex + 1) % clips.Length;
