@@ -26,6 +26,7 @@ namespace SoundSystem {
         /// An internal array of all playable clips
         /// </summary>
         [SerializeField] private AudioClip[] clips;
+        private int clipIndex = 0;
 
         /// <summary> 
         /// Specifies how clips should be retrieved from this Sound
@@ -38,8 +39,6 @@ namespace SoundSystem {
         ///</summary>
         [SerializeField] private AudioMixerGroup _mixer;
         public AudioMixerGroup Mixer => _mixer;
-
-        private int clipIndex = 0;
 
         ///<summary>
         /// the volume this Sound should be played at
@@ -117,7 +116,6 @@ namespace SoundSystem {
             clipIndex = index;
         }
 
-
         #endregion //ManageClips
 
         #region AudioCtrl
@@ -128,7 +126,6 @@ namespace SoundSystem {
         public void PlayOneShot() {
             AudioManager.PlayOneShot(this);
         }
-
 
         /// <summary> 
         /// Begin playing this sound from the main source of the <c>AudioManager</c>
