@@ -27,6 +27,7 @@ namespace SoundSystem {
         /// </summary>
         [SerializeField] private AudioClip[] clips;
         private int clipIndex = 0;
+        public int ClipIndex => clipIndex;
 
         /// <summary> 
         /// Specifies how clips should be retrieved from this Sound
@@ -90,7 +91,7 @@ namespace SoundSystem {
         /// Get the next AudioClip for this sound
         ///</summary>
         public AudioClip GetClip() {
-            if (clips.Length == 0) return null;
+            if (clips == null || clips.Length == 0) return null;
 
             switch (clipType) {
                 case ClipType.ordered:
@@ -114,6 +115,12 @@ namespace SoundSystem {
             }
 
             clipIndex = index;
+        }
+
+        public void ManualIncrementIndex() {
+            if (clipType != ClipType.manual) return;
+
+            clipIndex = (clipIndex + 1) % clips.Length;
         }
 
         #endregion //ManageClips

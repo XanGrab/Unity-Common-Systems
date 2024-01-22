@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Audio;
 using SoundSystem;
 
+//https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/Inspector/AudioClipInspector.cs
+
 [CustomEditor(typeof(Sound))]
 public class SoundEditor : Editor {
     private Sound _targetSound;
@@ -27,7 +29,6 @@ public class SoundEditor : Editor {
     }
 
     // Passing in clip and importer separately as we're not completely done with the asset setup at the time we're asked to generate the preview.
-    //https://github.com/Unity-Technologies/UnityCsReference/blob/master/Editor/Mono/Inspector/AudioClipInspector.cs
     private void DoRenderPreview(AudioClip clip, Rect wantedRect, float scaleFactor) {
         // scaleFactor *= 0.95f; // Reduce amplitude slightly to make highly compressed signals fit.
         float[] sampleData = new float[_targetClip.samples * _targetClip.channels];
@@ -62,6 +63,8 @@ public class SoundEditor : Editor {
     }
 
     private void PlayPreview() {
+        _targetClip = _targetSound.GetClip();
+
         _previewer.clip = _targetClip;
         _previewer.volume = _targetSound.Volume;
         _previewer.pitch = _targetSound.Pitch;
@@ -71,9 +74,9 @@ public class SoundEditor : Editor {
         _previewer.Play();
     }
 
-    private void PreviewNextClip() {
+    private void GetNextClip() {
+        _targetSound.ManualIncrementIndex();
         _targetClip = _targetSound.GetClip();
-        // PlayPreview();
     }
 
     private void StopPreview() {
@@ -94,11 +97,7 @@ public class SoundEditor : Editor {
         if (Event.current.isMouse) {
             return;
         }
-        //TODO replace this line
         gameObjectEditor.DrawPreview(r);
-        // gameObjectEditor.RenderStaticPreview();
-        // Texture2D temp = AssetPreview.GetAssetPreview(_targetClip);
-        // DoRenderPreview(_targetClip, r, 1.0f);
         if (_previewer.isPlaying) {
             float t = _previewer.time;
 
@@ -115,76 +114,6 @@ public class SoundEditor : Editor {
         }
     }
 
-    //TODO figure out how to override click events
-    // public override void OnPreviewGUI(Rect r, GUIStyle background) {
-    // if (s_DefaultIcon == null) Init();
-
-    // Event evt = Event.current;
-    // if (evt.type != EventType.Repaint && evt.type != EventType.Layout && evt.type != EventType.Used) {
-    //     switch (evt.type) {
-    //         case EventType.MouseDrag:
-    //         case EventType.MouseDown: {
-    //                 if (r.Contains(evt.mousePosition)) {
-    //                     var startSample = (int)(evt.mousePosition.x * (_targetClip.samples / (int)r.width));
-    //                     if (!AudioUtil.IsPreviewClipPlaying() || _targetClip != m_Clip)
-    //                         PlayClip(clip, startSample, s_Loop);
-    //                     else
-    //                         AudioUtil.SetPreviewClipSamplePosition(clip, startSample);
-    //                     evt.Use();
-    //                 }
-    //             }
-    //             break;
-    //     }
-    //     return;
-    // }
-
-    // if (Event.current.type == EventType.Repaint)
-    //     background.Draw(r, false, false, false, false);
-
-    // int c = _targetClip.channels;
-    // Rect s_WantedRect = new Rect(r.x, r.y, r.width, r.height);
-    // float sec2px = ((float)s_WantedRect.width / _targetClip.length);
-
-    // bool previewAble = AudioUtil.HasPreview(clip) || !(AudioUtil.IsTrackerFile(clip));
-    // if (!previewAble) {
-    //     float labelY = (r.height > 150) ? r.y + (r.height / 2) - 10 : r.y + (r.height / 2) - 25;
-    //     if (r.width > 64) {
-    //         if (AudioUtil.IsTrackerFile(clip)) {
-    //             EditorGUI.DropShadowLabel(new Rect(r.x, labelY, r.width, 20), string.Format("Module file with " + AudioUtil.GetMusicChannelCount(clip) + " channels."));
-    //         } else
-    //             EditorGUI.DropShadowLabel(new Rect(r.x, labelY, r.width, 20), "Can not show PCM data for this file");
-    //     }
-
-    //     if (m_Clip == clip && playing) {
-    //         float t = AudioUtil.GetPreviewClipPosition();
-
-    //         System.TimeSpan ts = new System.TimeSpan(0, 0, 0, 0, (int)(t * 1000.0f));
-
-    //         EditorGUI.DropShadowLabel(new Rect(s_WantedRect.x, s_WantedRect.y, s_WantedRect.width, 20), string.Format("Playing - {0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds));
-    //     }
-    // } else {
-    // PreviewGUI.BeginScrollView(s_WantedRect, m_Position, s_WantedRect, "PreHorizontalScrollbar", "PreHorizontalScrollbarThumb");
-
-    // if (Event.current.type == EventType.Repaint) {
-    //     DoRenderPreview(_targetClip, r, 1.0f);
-    // }
-
-    // for (int i = 0; i < c; ++i) {
-    //     if (c > 1 && r.width > 64) {
-    //         var labelRect = new Rect(s_WantedRect.x + 5, s_WantedRect.y + (s_WantedRect.height / c) * i, 30, 20);
-    //         EditorGUI.DropShadowLabel(labelRect, "ch " + (i + 1));
-    //     }
-    // }
-
-
-    // PreviewGUI.EndScrollView();
-    // }
-
-    // // force update GUI
-    // if (playing)
-    //     GUIView.current.Repaint();
-    // }
-
     public override void OnPreviewSettings() {
         if (GUILayout.Button(EditorGUIUtility.IconContent("PlayButton"), EditorStyles.toolbarButton)) {
             if (!_previewer.isPlaying) {
@@ -193,28 +122,6 @@ public class SoundEditor : Editor {
                 StopPreview();
             }
         };
-        if (GUILayout.Button(EditorGUIUtility.IconContent("Animation.NextKey"), EditorStyles.toolbarButton)) PreviewNextClip();
+        if (GUILayout.Button(EditorGUIUtility.IconContent("Animation.NextKey"), EditorStyles.toolbarButton)) GetNextClip();
     }
-
-    //TODO
-    // public override string GetInfoString() {
-    //     AudioClip clip = _targetClip;
-    //     int c = _targetClip.channels;
-    //     string ch = c == 1 ? "Mono" : c == 2 ? "Stereo" : (c - 1) + ".1";
-    //     // AudioCompressionFormat platformFormat = AudioUtil.GetTargetPlatformSoundCompressionFormat(clip);
-    //     // AudioCompressionFormat editorFormat = AudioUtil.GetSoundCompressionFormat(clip);
-    //     string s = "";
-    //     // if (platformFormat != editorFormat)
-    //     //     s += " (" + editorFormat + " in editor" + ")";
-    //     s += ", " + _targetClip.frequency + " Hz, " + ch + ", ";
-
-    //     System.TimeSpan ts = new System.TimeSpan(0, 0, 0, 0, (int)_targetClip.length);
-
-    //     if ((uint)_targetClip.length == 0xffffffff)
-    //         s += "Unlimited";
-    //     else
-    //         s += String.Format("{0:00}:{1:00}.{2:000}", ts.Minutes, ts.Seconds, ts.Milliseconds);
-
-    //     return s;
-    // }
 }
