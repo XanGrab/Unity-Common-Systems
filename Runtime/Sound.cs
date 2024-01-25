@@ -2,7 +2,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Audio;
 namespace SoundSystem {
-
     /// <summary> 
     /// Specifies how clips should be retrieved from a Sound
     /// </summary>
@@ -26,8 +25,8 @@ namespace SoundSystem {
         /// An internal array of all playable clips
         /// </summary>
         [SerializeField] private AudioClip[] clips;
-        private int clipIndex = 0;
-        public int ClipIndex => clipIndex;
+        private int _clipIndex = 0;
+        public int ClipIndex => _clipIndex;
 
         /// <summary> 
         /// Specifies how clips should be retrieved from this Sound
@@ -68,6 +67,10 @@ namespace SoundSystem {
             AudioManager.UnloadSounds(new Sound[] { this });
         }
 
+        public void Reset() {
+            _clipIndex = 0;
+        }
+
         #region ManageClips
 
         private void LoadClips() {
@@ -95,15 +98,15 @@ namespace SoundSystem {
 
             switch (clipType) {
                 case ClipType.ordered:
-                    clipIndex = (clipIndex + 1) % clips.Length;
+                    _clipIndex = (_clipIndex + 1) % clips.Length;
                     break;
                 case ClipType.random:
-                    clipIndex = Random.Range(0, clips.Length);
+                    _clipIndex = Random.Range(0, clips.Length);
                     break;
                 default:
                     break;
             }
-            return clips[clipIndex];
+            return clips[_clipIndex];
         }
 
         ///<summary>
@@ -114,13 +117,13 @@ namespace SoundSystem {
                 Debug.LogWarning("Warning [Sound " + name + "] should not call setClipIndex unless ClipOrder is set to manual");
             }
 
-            clipIndex = index;
+            _clipIndex = index;
         }
 
         public void ManualIncrementIndex() {
             if (clipType != ClipType.manual) return;
 
-            clipIndex = (clipIndex + 1) % clips.Length;
+            _clipIndex = (_clipIndex + 1) % clips.Length;
         }
 
         #endregion //ManageClips

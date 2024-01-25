@@ -25,6 +25,7 @@ public class SoundEditor : Editor {
     }
 
     private void OnDisable() {
+        _targetSound.Reset();
         DestroyImmediate(_previewer.gameObject);
     }
 
