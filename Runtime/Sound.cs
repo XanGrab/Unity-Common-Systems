@@ -25,8 +25,8 @@ namespace SoundSystem {
         /// An internal array of all playable clips
         /// </summary>
         [SerializeField] private AudioClip[] clips;
-        private int _clipIndex = 0;
-        public int ClipIndex => _clipIndex;
+        private int clipIndex = 0;
+        public int ClipIndex => clipIndex;
 
         /// <summary> 
         /// Specifies how clips should be retrieved from this Sound
@@ -68,7 +68,7 @@ namespace SoundSystem {
         }
 
         public void Reset() {
-            _clipIndex = 0;
+            clipIndex = 0;
         }
 
         #region ManageClips
@@ -98,15 +98,15 @@ namespace SoundSystem {
 
             switch (clipType) {
                 case ClipType.ordered:
-                    _clipIndex = (_clipIndex + 1) % clips.Length;
+                    clipIndex = (clipIndex + 1) % clips.Length;
                     break;
                 case ClipType.random:
-                    _clipIndex = Random.Range(0, clips.Length);
+                    clipIndex = Random.Range(0, clips.Length);
                     break;
                 default:
                     break;
             }
-            return clips[_clipIndex];
+            return clips[clipIndex];
         }
 
         ///<summary>
@@ -117,13 +117,13 @@ namespace SoundSystem {
                 Debug.LogWarning("Warning [Sound " + name + "] should not call setClipIndex unless ClipOrder is set to manual");
             }
 
-            _clipIndex = index;
+            clipIndex = index;
         }
 
         public void ManualIncrementIndex() {
             if (clipType != ClipType.manual) return;
 
-            _clipIndex = (_clipIndex + 1) % clips.Length;
+            clipIndex = (clipIndex + 1) % clips.Length;
         }
 
         #endregion //ManageClips
