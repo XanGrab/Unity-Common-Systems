@@ -58,7 +58,7 @@ namespace SoundSystem {
         }
 
         private static AudioSource ReadySource(Sound sound, AudioSource src = null) {
-            if (!src) src = speaker;
+            if (src == null) src = speaker;
 
             src.clip = sound.GetClip();
             src.volume = sound.Volume;
@@ -124,7 +124,8 @@ namespace SoundSystem {
         /// <param name="fadeDuration"> [optional] specifify a duration for which the sound should fade-in </param>
         public static void Play(Sound sound, float startTime = 0f, float fadeDuration = 0f) {
             AudioSource src = ReadySource(sound);
-            if (!src) {
+            if (src == null) {
+                Debug.LogError("AudioManager failed to play sound " + sound.name);
                 return;
             } else {
                 speaker = src;
@@ -146,7 +147,7 @@ namespace SoundSystem {
         /// </summary>
         /// <param name="src"> [optional] manually specifify an AudioSource to toggle </param>
         public static void PauseToggle(AudioSource src = null) {
-            if (!src) src = speaker;
+            if (src == null) src = speaker;
 
             if (src.isPlaying) {
                 src.Pause();
@@ -161,7 +162,7 @@ namespace SoundSystem {
         /// <param name="fadeDuration"> [optional] specifify a duration for which the sound should fade-out </param>
         /// <param name="src"> [optional] manually specifify an AudioSource to fade </param>
         public static void Stop(float fadeDuration = 0f, AudioSource src = null) {
-            if (!src) src = speaker;
+            if (src == null) src = speaker;
             if (fadeDuration <= 0) {
                 src.Stop();
             } else {
@@ -180,7 +181,7 @@ namespace SoundSystem {
         /// <param name="duration">duration of the fade event in seconds</param> 
         /// <param name="src"> [optional] manually specifify an AudioSource to fade </param>
         public static IEnumerator FadeVolume(float targetVolume, float duration, AudioSource src = null) {
-            if (!src) src = speaker;
+            if (src == null) src = speaker;
             float initialVolume = src.volume;
 
             for (float elapsedTime = 0f; elapsedTime <= duration; elapsedTime += Time.deltaTime) {
