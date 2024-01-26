@@ -132,13 +132,12 @@ namespace SoundSystem {
             }
 
             speaker.time = startTime;
-            if (!speaker.isPlaying) {
-                speaker.Play();
 
-                if (fadeDuration > 0) {
-                    speaker.volume = 0;
-                    _instance.StartCoroutine(FadeVolume(sound.Volume, fadeDuration, speaker));
-                }
+            speaker.Play();
+
+            if (fadeDuration > 0) {
+                speaker.volume = 0;
+                _instance.StartCoroutine(FadeVolume(sound.Volume, fadeDuration, speaker));
             }
         }
 
